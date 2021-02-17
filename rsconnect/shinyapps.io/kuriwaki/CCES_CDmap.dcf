@@ -1,0 +1,12 @@
+name: CCES_CDmap
+title: CCES_CDmap
+username:
+account: kuriwaki
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3653618
+bundleId: 4237635
+url: https://kuriwaki.shinyapps.io/CCES_CDmap/
+when: 1613599467.973
+asMultiple: FALSE
+asStatic: FALSE
