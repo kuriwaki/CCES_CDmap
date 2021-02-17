@@ -26,7 +26,7 @@ shinyServer(function(input, output) {
         left_join(cd_info_2018, by = "cd") %>%
         mutate(across(starts_with("pct_"), ~percent(.x, accuracy = 1))) %>%
         # Make label
-        mutate(cd_lab = glue("<b>{cd}</b><br>({largest_place})<br>",
+        mutate(cd_lab = glue("<b>{cd}</b><br>({dailykos_name})<br>",
                              "{input$race}: {percent(frac, accuracy = 1)}<br>",
                              "McCain {pct_mccain}<br>Romney {pct_romney}<br>Trump {pct_trump}"))
 
@@ -44,7 +44,7 @@ shinyServer(function(input, output) {
           layout(margin = list(b = 20), ##bottom margin in pixels
                  annotations =
                    list(x = 0.1, y = 0.2,
-                        text = "Map from Daniel Donner (http://dkel.ec/map).<br>Election Data from DailyKos, Race Data from 2018 ACS.",
+                        text = "Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap).<br>Map from Daniel Donner (http://dkel.ec/map).<br>Election Data from DailyKos, Race Data from 2018 ACS.",
                         showarrow = FALSE,
                         xref = 'paper', yref = 'paper',
                         align = 'left',
