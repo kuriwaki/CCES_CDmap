@@ -1,11 +1,6 @@
 # This is the user-interface definition of a Shiny web application. You can
 
 library(shiny)
-library(plotly)
-library(donnermap)
-library(ggthemes)
-library(ggplot2)
-library(dplyr)
 
 
 # Define UI for application that draws a histogram

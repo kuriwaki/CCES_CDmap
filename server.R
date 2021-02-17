@@ -9,7 +9,6 @@ library(donnermap)
 library(ggthemes)
 library(tidyverse)
 library(sf)
-library(ccesMRPprep)
 library(glue)
 library(scales)
 
@@ -23,7 +22,7 @@ shinyServer(function(input, output) {
         left_join(race_by_cd, by = "cd") %>%
         filter(race == input$race) %>%
         # add CD info
-        left_join(cd_info_2018, by = "cd") %>%
+        left_join(cd_info, by = "cd") %>%
         mutate(across(starts_with("pct_"), ~percent(.x, accuracy = 1))) %>%
         # Make label
         mutate(cd_lab = glue("<b>{cd}</b><br>({dailykos_name})<br>",
