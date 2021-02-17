@@ -5,8 +5,6 @@ account: kuriwaki
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3653618
-bundleId: 4237635
+bundleId: 4237876
 url: https://kuriwaki.shinyapps.io/CCES_CDmap/
-when: 1613599467.973
-asMultiple: FALSE
-asStatic: FALSE
+when: 1613603594.51949
