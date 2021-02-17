@@ -12,7 +12,7 @@ library(scales)
 
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(
+ui <- shinyUI(fluidPage(
   # Auto-scale size https://stackoverflow.com/a/44437161
   tags$head(tags$script('
                         var dimension = [0, 0];
@@ -44,7 +44,7 @@ shinyUI(fluidPage(
 )
 
 
-shinyServer(function(input, output) {
+server <- shinyServer(function(input, output) {
 
   output$cdmap <- renderPlotly({
 
@@ -86,3 +86,7 @@ shinyServer(function(input, output) {
   })
 
 })
+
+
+# Run the application
+shinyApp(ui = ui, server = server)
