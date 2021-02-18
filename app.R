@@ -60,6 +60,8 @@ server <- shinyServer(function(input, output) {
                            "{input$race}: {percent(frac, accuracy = 1)}<br>",
                            "McCain {pct_mccain}<br>Romney {pct_romney}<br>Trump {pct_trump}"))
 
+    st_crs(cd_race) = 3857
+
     p <- ggplot(cd_race, aes(fill = frac, text = cd_lab)) +
       geom_sf(color = "white", size = 0.1) +
       scale_fill_viridis_c(option = "cividis") +
