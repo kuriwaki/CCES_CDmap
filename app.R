@@ -64,14 +64,16 @@ server <- shinyServer(function(input, output) {
 
     p <- ggplot(cd_race, aes(fill = frac, text = cd_lab)) +
       geom_sf(color = "white", size = 0.1) +
-      scale_fill_viridis_c(option = "cividis") +
+      scale_fill_viridis_c(option = "viridis", limits = c(0, 1), labels = percent_format(accuracy = 1)) +
       theme_map() +
       labs(fill = input$race)
 
     ggplotly(p,
              tooltip = "text",
+             colors = "Viridis",
              width = (0.9*as.numeric(input$dimension[1])),
-             height = (0.9*as.numeric(input$dimension[2]))) %>%
+             height = (0.9*as.numeric(input$dimension[2]))
+             ) %>%
       style(hoverlabel = list(bgcolor = "white"), hoveron = "fill") %>%
       layout(margin = list(b = 20), ##bottom margin in pixels
              annotations =
