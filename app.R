@@ -56,7 +56,8 @@ server <- shinyServer(function(input, output) {
       left_join(cd_info, by = "cd") %>%
       mutate(across(starts_with("pct_"), ~percent(.x, accuracy = 1))) %>%
       # Make label
-      mutate(cd_lab = glue("<b>{cd}</b><br>({dailykos_name})<br>",
+      mutate(cd_lab = glue("<b>{cd}</b><br>{dailykos_name}<br>",
+                           "{ush116_rep} ({ush116_party})<br>",
                            "{input$race}: {percent(frac, accuracy = 1)}<br>",
                            "McCain {pct_mccain}<br>Romney {pct_romney}<br>Trump {pct_trump}"))
 
