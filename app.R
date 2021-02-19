@@ -36,8 +36,22 @@ mrp_range <- range(cc_rpv$p_mrp_est)
 
 # Define UI for application that draws a histogram
 ui <- shinyUI(fluidPage(
-  # Auto-scale size https://stackoverflow.com/a/44437161
-  tags$head(tags$script('
+
+  # Application title
+  titlePanel("Racial Voting by Congressional District"),
+  em("Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap). Map from Daniel Donner (http://dkel.ec/map). MRP Estimates by Shiro Kuriwaki."),
+  hr(),
+  tabsetPanel(
+    tabPanel("Race and Racially Polarized Voting",
+             column(4,
+                    selectInput("race", "Show Prevalence of", unique(race_by_cd$race)),
+                    plotlyOutput("cdmap")),
+             column(8,
+                    br(),
+                    strong("Pr(Trump | White) - Pr(Trump | Non-White), if the entire Voting Age Population votes"),
+                    br(),
+                    # Auto-scale size https://stackoverflow.com/a/44437161
+                    tags$head(tags$script('
                         var dimension = [0, 0];
                         $(document).on("shiny:connected", function(e) {
                         dimension[0] = window.innerWidth;
@@ -50,21 +64,7 @@ ui <- shinyUI(fluidPage(
                         Shiny.onInputChange("dimension", dimension);
                         });
                         ')),
-
-  # Application title
-  titlePanel("Racial Voting by Congressional District"),
-  em("Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap). Map from Daniel Donner (http://dkel.ec/map). MRP Estimates by Shiro Kuriwaki."),
-  hr(),
-  tabsetPanel(
-    tabPanel("Race and Racially Polarized Voting",
-            column(4,
-                   selectInput("race", "Show Prevalence of", unique(race_by_cd$race)),
-                   plotlyOutput("cdmap")),
-            column(8,
-                   br(),
-                   strong("Pr(Trump | White) - Pr(Trump | Non-White)"),
-                   br(),
-                   plotlyOutput("diff_trump"))
+                    plotlyOutput("diff_trump"))
     ),
     tabPanel("Component Estimates",
              column(6,
@@ -81,41 +81,31 @@ ui <- shinyUI(fluidPage(
 
 server <- shinyServer(function(input, output) {
 
-  output$cdmap <- renderPlotly({
-    cd_race <- cd_race %>%
-      filter(race == input$race) %>%
-      mutate(cd_lab = glue("<b>{cd}</b><br>{dailykos_name}<br>",
-                           "{ush116_rep} ({ush116_party})<br>",
-                           "{input$race}: {percent(frac, accuracy = 1)}<br>",
-                           "McCain {pct_mccain}<br>Romney {pct_romney}<br>Trump {pct_trump}"))
+  observeEvent(input$dimension, {
+    output$cdmap <- renderPlotly({
+      cd_race <- cd_race %>%
+        filter(race == input$race) %>%
+        mutate(cd_lab = glue("<b>{cd}</b><br>{dailykos_name}<br>",
+                             "{ush116_rep} ({ush116_party})<br>",
+                             "{input$race}: {percent(frac, accuracy = 1)}<br>",
+                             "McCain {pct_mccain}<br>Romney {pct_romney}<br>Trump {pct_trump}"))
 
 
-    p <- ggplot(cd_race, aes(fill = frac, text = cd_lab)) +
-      geom_sf(color = "white", size = 0.1) +
-      scale_fill_viridis_c(option = "viridis", limits = c(0, 1), labels = percent_format(accuracy = 1)) +
-      theme_map() +
-      labs(fill = input$race) +
-      guides(fill = FALSE)
+      p <- ggplot(cd_race, aes(fill = frac, text = cd_lab)) +
+        geom_sf(color = "white", size = 0.1) +
+        scale_fill_viridis_c(option = "viridis", limits = c(0, 1), labels = percent_format(accuracy = 1)) +
+        theme_map() +
+        labs(fill = input$race) +
+        guides(fill = FALSE)
 
-    ggplotly(p,
-             tooltip = "text",
-             colors = "Viridis"
-             # width = (0.9*as.numeric(input$dimension[1])),
-             # height = (0.9*as.numeric(input$dimension[2]))
-             ) %>%
-      style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
-      # layout(margin = list(b = 20), ##bottom margin in pixels
-      #        annotations =
-      #          list(x = 0.1, y = 0.2,
-      #               text = "",
-      #               showarrow = FALSE,
-      #               xref = 'paper', yref = 'paper',
-      #               align = 'left',
-      #               xanchor = 'left', yanchor = 'bottom',
-      #               xshift = 0, yshift = 0,
-      #               font = list(size = 8))
-      # ) %>%
-      # plotly_build()
+      ggplotly(p,
+               width = ((3.5/12)*as.numeric(input$dimension[1])),
+               height = (0.4*as.numeric(input$dimension[2])),
+               tooltip = "text",
+               colors = "Viridis"
+      ) %>%
+        style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
+    })
   })
 
   output$white_trump <- renderPlotly({
@@ -154,23 +144,30 @@ server <- shinyServer(function(input, output) {
       style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
   })
 
-  output$diff_trump <- renderPlotly({
+  observeEvent(input$dimension, {
+    output$diff_trump <- renderPlotly({
 
-    diff_rpv <- shp_diff %>%
-      mutate(p_mrp_est = white - non_white) %>%
-      mutate(cd_lab = glue("<b>{cd}</b><br>",
-                           "Diff: {percent(p_mrp_est, accuracy = 1, suffix = 'pp')}<br>",
-                           "White {percent(white, accuracy = 1)} - Non-white {percent(non_white, accuracy = 1)}"))
+      diff_rpv <- shp_diff %>%
+        mutate(p_mrp_est = white - non_white) %>%
+        mutate(cd_lab = glue("<b>{cd}</b><br>",
+                             "Diff: {percent(p_mrp_est, accuracy = 1, suffix = 'pp')}<br>",
+                             "White {percent(white, accuracy = 1)} - Non-white {percent(non_white, accuracy = 1)}"))
 
-    p <- ggplot(diff_rpv, aes(fill = p_mrp_est, text = cd_lab)) +
-      geom_sf(color = "white", size = 0.1) +
-      scale_fill_distiller(palette = "YlOrRd", direction = 1) +
-      theme_map() +
-      labs(fill = "Race Gap") +
-      guides(fill = FALSE)
+      p <- ggplot(diff_rpv, aes(fill = p_mrp_est, text = cd_lab)) +
+        geom_sf(color = "white", size = 0.1) +
+        scale_fill_distiller(palette = "YlOrRd", direction = 1) +
+        theme_map() +
+        labs(fill = "Race Gap") +
+        guides(fill = FALSE)
 
-    ggplotly(p, tooltip = "text") %>%
-      style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
+      ggplotly(p,
+               width = ((7.5/12)*as.numeric(input$dimension[1])),
+               height = (0.75*as.numeric(input$dimension[2])),
+               tooltip = "text") %>%
+        style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
+
+    })
+
   })
 
 })
