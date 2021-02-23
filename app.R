@@ -21,15 +21,17 @@ st_crs(cd_race) <- 3857
 cc_rpv <- read_rds("data/by-cd-race2.rds")
 shp_rpv <- cd_shp %>%
   left_join(cc_rpv, by = "cd") %>%
-  mutate(across(starts_with("pct_"), ~percent(.x, accuracy = 1)))
+  mutate(across(starts_with("pct_|white_"), ~percent(.x, accuracy = 1)))
 st_crs(shp_rpv) <- 3857
 
 cc_diff <- cc_rpv %>%
-  pivot_wider(id_cols = c(cd, pct_trump, pct_white), names_from = race2, values_from = p_mrp_est) %>%
+  pivot_wider(id_cols = c(cd, pct_trump, white_VAP, white_elec),
+              names_from = race2, values_from = p_mrp_est) %>%
   clean_names()
 shp_diff <- cd_shp %>%
   left_join(cc_diff, by = "cd") %>%
-  mutate(across(starts_with("pct_"), ~percent(.x, accuracy = 1)))
+  left_join(select(cd_info, cd, dailykos_name, largest_place), by = "cd") %>%
+  mutate(across(starts_with("pct_|white_"), ~percent(.x, accuracy = 1)))
 st_crs(shp_diff) <- 3857
 
 mrp_range <- range(cc_rpv$p_mrp_est)
@@ -39,7 +41,9 @@ ui <- shinyUI(fluidPage(
 
   # Application title
   titlePanel("Racial Voting by Congressional District"),
-  em("Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap). Map from Daniel Donner (http://dkel.ec/map). MRP Estimates by Shiro Kuriwaki."),
+  em("Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap)."),
+  br(),
+  em("Map from Daniel Donner (http://dkel.ec/map). MRP and synthetic turnout population estimates by Shiro Kuriwaki."),
   hr(),
   tabsetPanel(
     tabPanel("Race and Racially Polarized Voting",
@@ -48,7 +52,7 @@ ui <- shinyUI(fluidPage(
                     plotlyOutput("cdmap")),
              column(8,
                     br(),
-                    strong("Pr(Trump | White) - Pr(Trump | Non-White), if the entire Voting Age Population votes"),
+                    strong("Pr(Trump | White) - Pr(Trump | Non-White), among estimated 2016 Electorate"),
                     br(),
                     # Auto-scale size https://stackoverflow.com/a/44437161
                     tags$head(tags$script('
@@ -152,9 +156,9 @@ server <- shinyServer(function(input, output) {
 
     diff_rpv <- shp_diff %>%
       mutate(p_mrp_est = white - non_white) %>%
-      mutate(cd_lab = glue("<b>{cd}</b><br>",
+      mutate(cd_lab = glue("<b>{cd}</b><br><i>{str_wrap(dailykos_name, width = 15)}</i><br>",
                            "Diff: {percent(p_mrp_est, accuracy = 1, suffix = 'pp')}<br>",
-                           "White {percent(white, accuracy = 1)} - Non-white {percent(non_white, accuracy = 1)}"))
+                           "White {percent(white, accuracy = 1)} - Non-white {percent(non_white, accuracy = 1)}<br>"))
 
     p <- ggplot(diff_rpv, aes(fill = p_mrp_est, text = cd_lab)) +
       geom_sf(color = "white", size = 0.1) +
