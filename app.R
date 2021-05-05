@@ -25,7 +25,7 @@ shp_rpv <- cd_shp %>%
 st_crs(shp_rpv) <- 3857
 
 cc_diff <- cc_rpv %>%
-  pivot_wider(id_cols = c(cd, pct_trump, white_VAP, white_elec),
+  pivot_wider(id_cols = c(cd, pct_trump, white_elec),
               names_from = race2, values_from = p_mrp_est) %>%
   clean_names()
 shp_diff <- cd_shp %>%
@@ -40,7 +40,7 @@ mrp_range <- range(cc_rpv$p_mrp_est)
 ui <- shinyUI(fluidPage(
 
   # Application title
-  titlePanel("Racial Voting by Congressional District"),
+  titlePanel("Racial Voting by Congressional District (Work in Progress)"),
   em("Shiro Kuriwaki (https://github.com/kuriwaki/CCES_CDmap)."),
   br(),
   em("Map from Daniel Donner (http://dkel.ec/map). MRP and synthetic turnout population estimates by Shiro Kuriwaki."),
